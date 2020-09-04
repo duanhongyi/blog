@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 3.9.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"yoursite.com","root":"/","scheme":"Muse","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}},"path":"search.xml"};
+  </script>
+
+  <meta name="description" content="近几天发现某些Android特殊机型（vivo y17t）下的OkHttp经常报Timeout，而在其他机型下却没有这个问题，问题内容如下： java.io.InterruptedIOException: timeout        at okio.AsyncTimeout.exit(AsyncTimeout.java:249)        at okio.AsyncTimeout$2.rea">
+<meta name="keywords" content="Drycc Workflow">
+<meta property="og:type" content="article">
+<meta property="og:title" content="某些特殊机型下使用OkHttp导致Timeout的问题">
+<meta property="og:url" content="http://yoursite.com/2015/03/26/某些特殊机型下使用OkHttp导致Timeout的问题/index.html">
+<meta property="og:site_name" content="Coding">
+<meta property="og:description" content="近几天发现某些Android特殊机型（vivo y17t）下的OkHttp经常报Timeout，而在其他机型下却没有这个问题，问题内容如下： java.io.InterruptedIOException: timeout        at okio.AsyncTimeout.exit(AsyncTimeout.java:249)        at okio.AsyncTimeout$2.rea">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2020-09-04T16:35:11.264Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="某些特殊机型下使用OkHttp导致Timeout的问题">
+<meta name="twitter:description" content="近几天发现某些Android特殊机型（vivo y17t）下的OkHttp经常报Timeout，而在其他机型下却没有这个问题，问题内容如下： java.io.InterruptedIOException: timeout        at okio.AsyncTimeout.exit(AsyncTimeout.java:249)        at okio.AsyncTimeout$2.rea">
+
+<link rel="canonical" href="http://yoursite.com/2015/03/26/某些特殊机型下使用OkHttp导致Timeout的问题/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>某些特殊机型下使用OkHttp导致Timeout的问题 | Coding</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">Coding</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+      <p class="site-subtitle" itemprop="description">Simple is better</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://yoursite.com/2015/03/26/某些特殊机型下使用OkHttp导致Timeout的问题/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="duanhongyi">
+      <meta itemprop="description" content="Life Is Short, Use Python.">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="Coding">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          某些特殊机型下使用OkHttp导致Timeout的问题
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2015-03-26 08:47:05" itemprop="dateCreated datePublished" datetime="2015-03-26T08:47:05+08:00">2015-03-26</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2020-09-05 00:35:11" itemprop="dateModified" datetime="2020-09-05T00:35:11+08:00">2020-09-05</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>近几天发现某些Android特殊机型（vivo y17t）下的OkHttp经常报Timeout，而在其他机型下却没有这个问题，问题内容如下：</p>
+<div class="highlight"><pre><span class="n">java</span><span class="o">.</span><span class="na">io</span><span class="o">.</span><span class="na">InterruptedIOException</span><span class="o">:</span> <span class="n">timeout</span><br>        <span class="n">at</span> <span class="n">okio</span><span class="o">.</span><span class="na">AsyncTimeout</span><span class="o">.</span><span class="na">exit</span><span class="o">(</span><span class="n">AsyncTimeout</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">249</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">okio</span><span class="o">.</span><span class="na">AsyncTimeout$2</span><span class="o">.</span><span class="na">read</span><span class="o">(</span><span class="n">AsyncTimeout</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">217</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">okio</span><span class="o">.</span><span class="na">RealBufferedSource</span><span class="o">.</span><span class="na">indexOf</span><span class="o">(</span><span class="n">RealBufferedSource</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">300</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">okio</span><span class="o">.</span><span class="na">RealBufferedSource</span><span class="o">.</span><span class="na">indexOf</span><span class="o">(</span><span class="n">RealBufferedSource</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">289</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">okio</span><span class="o">.</span><span class="na">RealBufferedSource</span><span class="o">.</span><span class="na">readUtf8LineStrict</span><span class="o">(</span><span class="n">RealBufferedSource</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">196</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">internal</span><span class="o">.</span><span class="na">http</span><span class="o">.</span><span class="na">HttpConnection</span><span class="o">.</span><span class="na">readHeaders</span><span class="o">(</span><span class="n">HttpConnection</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">219</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">internal</span><span class="o">.</span><span class="na">http</span><span class="o">.</span><span class="na">HttpConnection</span><span class="o">.</span><span class="na">readResponse</span><span class="o">(</span><span class="n">HttpConnection</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">198</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">internal</span><span class="o">.</span><span class="na">http</span><span class="o">.</span><span class="na">HttpTransport</span><span class="o">.</span><span class="na">readResponseHeaders</span><span class="o">(</span><span class="n">HttpTransport</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">80</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">internal</span><span class="o">.</span><span class="na">http</span><span class="o">.</span><span class="na">HttpEngine</span><span class="o">.</span><span class="na">readNetworkResponse</span><span class="o">(</span><span class="n">HttpEngine</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">830</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">internal</span><span class="o">.</span><span class="na">http</span><span class="o">.</span><span class="na">HttpEngine</span><span class="o">.</span><span class="na">access$200</span><span class="o">(</span><span class="n">HttpEngine</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">95</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">internal</span><span class="o">.</span><span class="na">http</span><span class="o">.</span><span class="na">HttpEngine$NetworkInterceptorChain</span><span class="o">.</span><span class="na">proceed</span><span class="o">(</span><span class="n">HttpEngine</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">823</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">internal</span><span class="o">.</span><span class="na">http</span><span class="o">.</span><span class="na">HttpEngine</span><span class="o">.</span><span class="na">readResponse</span><span class="o">(</span><span class="n">HttpEngine</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">684</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">Call</span><span class="o">.</span><span class="na">getResponse</span><span class="o">(</span><span class="n">Call</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">272</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">Call$ApplicationInterceptorChain</span><span class="o">.</span><span class="na">proceed</span><span class="o">(</span><span class="n">Call</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">228</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">Call</span><span class="o">.</span><span class="na">getResponseWithInterceptorChain</span><span class="o">(</span><span class="n">Call</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">199</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">Call</span><span class="o">.</span><span class="na">execute</span><span class="o">(</span><span class="n">Call</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">79</span><span class="o">)</span><br></pre></div>
+
+<p>或者是这个错误:</p>
+<div class="highlight"><pre><span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">SocketTimeoutException</span><br>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">PlainSocketImpl</span><span class="o">.</span><span class="na">read</span><span class="o">(</span><span class="n">PlainSocketImpl</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">495</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">PlainSocketImpl</span><span class="o">.</span><span class="na">access$000</span><span class="o">(</span><span class="n">PlainSocketImpl</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">46</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">java</span><span class="o">.</span><span class="na">net</span><span class="o">.</span><span class="na">PlainSocketImpl$PlainSocketInputStream</span><span class="o">.</span><span class="na">read</span><span class="o">(</span><span class="n">PlainSocketImpl</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">240</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">okio</span><span class="o">.</span><span class="na">Okio$2</span><span class="o">.</span><span class="na">read</span><span class="o">(</span><span class="n">Okio</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">137</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">okio</span><span class="o">.</span><span class="na">AsyncTimeout$2</span><span class="o">.</span><span class="na">read</span><span class="o">(</span><span class="n">AsyncTimeout</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">211</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">okio</span><span class="o">.</span><span class="na">RealBufferedSource</span><span class="o">.</span><span class="na">indexOf</span><span class="o">(</span><span class="n">RealBufferedSource</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">300</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">okio</span><span class="o">.</span><span class="na">RealBufferedSource</span><span class="o">.</span><span class="na">indexOf</span><span class="o">(</span><span class="n">RealBufferedSource</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">289</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">okio</span><span class="o">.</span><span class="na">RealBufferedSource</span><span class="o">.</span><span class="na">readUtf8LineStrict</span><span class="o">(</span><span class="n">RealBufferedSource</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">196</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">internal</span><span class="o">.</span><span class="na">http</span><span class="o">.</span><span class="na">HttpConnection</span><span class="o">.</span><span class="na">readResponse</span><span class="o">(</span><span class="n">HttpConnection</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">190</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">internal</span><span class="o">.</span><span class="na">http</span><span class="o">.</span><span class="na">HttpTransport</span><span class="o">.</span><span class="na">readResponseHeaders</span><span class="o">(</span><span class="n">HttpTransport</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">80</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">internal</span><span class="o">.</span><span class="na">http</span><span class="o">.</span><span class="na">HttpEngine</span><span class="o">.</span><span class="na">readNetworkResponse</span><span class="o">(</span><span class="n">HttpEngine</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">830</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">internal</span><span class="o">.</span><span class="na">http</span><span class="o">.</span><span class="na">HttpEngine</span><span class="o">.</span><span class="na">access$200</span><span class="o">(</span><span class="n">HttpEngine</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">95</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">internal</span><span class="o">.</span><span class="na">http</span><span class="o">.</span><span class="na">HttpEngine$NetworkInterceptorChain</span><span class="o">.</span><span class="na">proceed</span><span class="o">(</span><span class="n">HttpEngine</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">823</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">internal</span><span class="o">.</span><span class="na">http</span><span class="o">.</span><span class="na">HttpEngine</span><span class="o">.</span><span class="na">readResponse</span><span class="o">(</span><span class="n">HttpEngine</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">684</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">Call</span><span class="o">.</span><span class="na">getResponse</span><span class="o">(</span><span class="n">Call</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">272</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">Call$ApplicationInterceptorChain</span><span class="o">.</span><span class="na">proceed</span><span class="o">(</span><span class="n">Call</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">228</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">Call</span><span class="o">.</span><span class="na">getResponseWithInterceptorChain</span><span class="o">(</span><span class="n">Call</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">199</span><span class="o">)</span><br>        <span class="n">at</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">Call</span><span class="o">.</span><span class="na">execute</span><span class="o">(</span><span class="n">Call</span><span class="o">.</span><span class="na">java</span><span class="o">:</span><span class="mi">79</span><span class="o">)</span><br></pre></div>
+
+<p>对应生成OkHttpClient的代码如下：</p>
+<div class="highlight"><pre><span class="kd">public</span> <span class="kd">class</span> <span class="nc">HttpClientFactory</span> <span class="o">{</span><br><br>    <span class="kd">public</span> <span class="kd">volatile</span> <span class="kd">static</span> <span class="kt">int</span> <span class="n">MAX_IDLE_CONNECTIONS</span> <span class="o">=</span> <span class="mi">30</span><span class="o">;</span><br>    <span class="kd">public</span> <span class="kd">volatile</span> <span class="kd">static</span> <span class="kt">int</span> <span class="n">KEEP_ALIVE_DURATION_MS</span> <span class="o">=</span> <span class="mi">3</span> <span class="o"><em></em></span> <span class="mi">60</span> <span class="o"></span> <span class="mi">1000</span><span class="o">;</span><br>    <span class="kd">private</span> <span class="kd">volatile</span> <span class="kd">static</span> <span class="n">OkHttpClient</span> <span class="n">current</span><span class="o">;</span><br><br>    <span class="kd">private</span> <span class="kd">static</span> <span class="n">OkHttpClient</span> <span class="nf">_newHttpClient</span><span class="o">()</span> <span class="o">{</span><br>        <span class="n">OkHttpClient</span> <span class="n">client</span> <span class="o">=</span> <span class="k">new</span> <span class="n">OkHttpClient</span><span class="o">();</span><br>        <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">internal</span><span class="o">.</span><span class="na">Internal</span><span class="o">.</span><span class="na">instance</span><span class="o">.</span><span class="na">setNetwork</span><span class="o">(</span><span class="n">client</span><span class="o">,</span> <span class="k">new</span> <span class="n">Network</span><span class="o">()</span> <span class="o">{</span><br>            <span class="n">DNSQuery</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">CachedDNSQuery</span><span class="o">();</span><br>            <span class="nd">@Override</span><br>            <span class="kd">public</span> <span class="n">InetAddress</span><span class="o">[]</span> <span class="nf">resolveInetAddresses</span><span class="o">(</span><span class="n">String</span> <span class="n">string</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">UnknownHostException</span> <span class="o">{</span><br>                <span class="k">return</span> <span class="n">query</span><span class="o">.</span><span class="na">query</span><span class="o">(</span><span class="n">string</span><span class="o">);</span><br>            <span class="o">}</span><br>        <span class="o">});</span><br>        <span class="n">client</span><span class="o">.</span><span class="na">setConnectionPool</span><span class="o">(</span><span class="k">new</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">ConnectionPool</span><span class="o">(</span><br>                <span class="n">MAX_IDLE_CONNECTIONS</span><span class="o">,</span> <span class="n">KEEP_ALIVE_DURATION_MS</span><span class="o">));</span><br>        <span class="k">return</span> <span class="n">client</span><span class="o">;</span><br>    <span class="o">}</span><br><br>    <span class="kd">public</span> <span class="kd">static</span> <span class="kd">synchronized</span> <span class="n">OkHttpClient</span> <span class="nf">currentHttpClient</span><span class="o">()</span> <span class="o">{</span><br>        <span class="k">if</span> <span class="o">(</span><span class="n">current</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span><br>            <span class="n">current</span> <span class="o">=</span> <span class="n">_newHttpClient</span><span class="o">();</span><br>        <span class="o">}</span><br>        <span class="k">return</span> <span class="n">current</span><span class="o">;</span><br>    <span class="o">}</span><br><span class="o">}</span><br></pre></div>
+
+<p>后经过测试发现在一些机型下 volatile static变量修饰OkHttpClient会导致OkHttp的流Timeout，将生成OkHttpClient的代码修改为：</p>
+<div class="highlight"><pre><span class="kd">public</span> <span class="kd">class</span> <span class="nc">HttpClientFactory</span> <span class="o">{</span><br><br>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">int</span> <span class="n">MAX_IDLE_CONNECTIONS</span> <span class="o">=</span> <span class="mi">30</span><span class="o">;</span><br>    <span class="kd">public</span> <span class="kd">static</span> <span class="kt">int</span> <span class="n">KEEP_ALIVE_DURATION_MS</span> <span class="o">=</span> <span class="mi">3</span> <span class="o"><em></em></span> <span class="mi">60</span> <span class="o"></span> <span class="mi">1000</span><span class="o">;</span><br>    <span class="kd">private</span> <span class="kd">final</span> <span class="n">OkHttpClient</span> <span class="n">client</span><span class="o">;</span><br>    <span class="kd">private</span> <span class="kd">static</span> <span class="n">HttpClientFactory</span> <span class="n">instance</span><span class="o">;</span><br><br>    <span class="kd">private</span> <span class="nf">HttpClientFactory</span><span class="o">()</span> <span class="o">{</span><br>        <span class="n">client</span> <span class="o">=</span> <span class="k">new</span> <span class="n">OkHttpClient</span><span class="o">();</span><br>        <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">internal</span><span class="o">.</span><span class="na">Internal</span><span class="o">.</span><span class="na">instance</span><span class="o">.</span><span class="na">setNetwork</span><span class="o">(</span><span class="n">client</span><span class="o">,</span> <span class="k">new</span> <span class="n">Network</span><span class="o">()</span> <span class="o">{</span><br>            <span class="n">DNSQuery</span> <span class="n">query</span> <span class="o">=</span> <span class="k">new</span> <span class="n">CachedDNSQuery</span><span class="o">();</span><br>            <span class="nd">@Override</span><br>            <span class="kd">public</span> <span class="n">InetAddress</span><span class="o">[]</span> <span class="nf">resolveInetAddresses</span><span class="o">(</span><span class="n">String</span> <span class="n">string</span><span class="o">)</span> <span class="kd">throws</span> <span class="n">UnknownHostException</span> <span class="o">{</span><br>                <span class="k">return</span> <span class="n">query</span><span class="o">.</span><span class="na">query</span><span class="o">(</span><span class="n">string</span><span class="o">);</span><br>            <span class="o">}</span><br>        <span class="o">});</span><br>        <span class="n">client</span><span class="o">.</span><span class="na">setConnectionPool</span><span class="o">(</span><span class="k">new</span> <span class="n">com</span><span class="o">.</span><span class="na">squareup</span><span class="o">.</span><span class="na">okhttp</span><span class="o">.</span><span class="na">ConnectionPool</span><span class="o">(</span><br>                <span class="n">MAX_IDLE_CONNECTIONS</span><span class="o">,</span> <span class="n">KEEP_ALIVE_DURATION_MS</span><span class="o">));</span><br>        <span class="n">client</span><span class="o">.</span><span class="na">setConnectTimeout</span><span class="o">(</span><span class="mi">10</span><span class="o">,</span> <span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">);</span><br>        <span class="n">client</span><span class="o">.</span><span class="na">setWriteTimeout</span><span class="o">(</span><span class="mi">10</span><span class="o">,</span> <span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">);</span><br>        <span class="n">client</span><span class="o">.</span><span class="na">setReadTimeout</span><span class="o">(</span><span class="mi">30</span><span class="o">,</span> <span class="n">TimeUnit</span><span class="o">.</span><span class="na">SECONDS</span><span class="o">);</span><br>    <span class="o">}</span><br><br>    <span class="kd">public</span> <span class="kd">static</span> <span class="kd">synchronized</span> <span class="n">OkHttpClient</span> <span class="nf">currentHttpClient</span><span class="o">()</span> <span class="o">{</span><br>        <span class="k">if</span> <span class="o">(</span><span class="n">instance</span> <span class="o">==</span> <span class="kc">null</span><span class="o">)</span> <span class="o">{</span><br>            <span class="n">instance</span> <span class="o">=</span> <span class="k">new</span> <span class="n">HttpClientFactory</span><span class="o">();</span><br>        <span class="o">}</span><br>        <span class="k">return</span> <span class="n">instance</span><span class="o">.</span><span class="na">client</span><span class="o">;</span><br>    <span class="o">}</span><br><span class="o">}</span><br></pre></div>
+
+<p>问题解决，具体原因可能涉及到的Android的Dalvik虚拟机的底层实现问题，有时间深纠一下。</p>
+<p>后记：</p>
+<p>是在某些机型下，强制类型转换会产生问题，属于jit优化的一个bug，使用android:vmSafeMode=&quot;true&quot;可以解决问题；或者使用最新的okhttp客户端。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2015/03/09/隐藏Virtualbox迷你工具栏/" rel="prev" title="隐藏Virtualbox迷你工具栏">
+      <i class="fa fa-chevron-left"></i> 隐藏Virtualbox迷你工具栏
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2015/09/24/ubuntu12-04安装liberasurecode/" rel="next" title="ubuntu12.04安装liberasurecode">
+      ubuntu12.04安装liberasurecode <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">duanhongyi</p>
+  <div class="site-description" itemprop="description">Life Is Short, Use Python.</div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">34</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-tags">
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">标签</span>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2020</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">duanhongyi</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://muse.theme-next.org" class="theme-link" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+<script src="/js/utils.js"></script><script src="/js/motion.js"></script>
+<script src="/js/schemes/muse.js"></script>
+<script src="/js/next-boot.js"></script>
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+</body>
+</html>
